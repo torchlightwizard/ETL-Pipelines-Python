@@ -26,13 +26,16 @@ class Extract (BaseStep):
 
 
 class FromCSV (Extract):
-    def __init__ (self, path="./data/datawarehouse/data/openmeteo.csv", chunksize=0):
+    def __init__ (self, path=None, chunksize=0):
         self.chunksize = chunksize
         super().__init__(path, None, None, None)
 
 
 
     def get (self):
+        if self.path is None:
+            raise SystemError(f"No path found.\n")
+
         if not os.path.exists(self.path):
             raise FileNotFoundError(f"File not found at: {self.path}")
         
