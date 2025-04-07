@@ -16,13 +16,12 @@ env(path_to_keys)
 
 
 
-
 class Db ():
 
-    def __init__ (self,user, password, host, name, schema, path=None, data=None):
-        self.user = user
-        self.password = password
-        self.host = host
+    def __init__ (self, user="DB_USER", password="DB_PASS", host="DB_HOST", name="", path=None, schema=[], data=None):
+        self.user = os.getenv(user)
+        self.password = os.getenv(password)
+        self.host = os.getenv(host)
 
         self.connection = None
 
@@ -43,7 +42,7 @@ class Db ():
             password=self.password,
             host=self.host
         )
-        logging.info(f"Successfully started connection to db: {self.name}")
+        logging.info(f"Successfully started connection to db: {self.connection}")
         return self
     
 
@@ -63,13 +62,13 @@ class Db ():
             pass
 
         self.connection = None
-        logging.info(f"Successfully closed connection to db: {self.name}")
+        logging.info(f"Successfully closed connection to db: {self.connection}")
         return self
 
 
 
     def __del__(self):
-        self.close()
+        return self.close()
     
 
 
@@ -98,6 +97,22 @@ class Db ():
                 return True
             else:
                 return False
+            
+
+    
+    def existsschema (self, table):
+        with self.connection.cursor() as cursor:
+            cursor.execute(f"USE {self.name}")
+            cursor.execute(f"DESCRIBE {table['table_name']}")
+
+            required_schema = table["columns"]
+            actual_schema = {row[0]: row[1].split('(')[0] for row in cursor.fetchall()}
+
+            for col, dtype in required_schema.items():
+                dtype = dtype.split(" ")[0].lower()
+                if actual_schema.get(col) != dtype:
+                    raise KeyError(f"Function: Db.existsschema(). The database {self.name} has schema mismatch in table {table['table_name']}: {col} should be {dtype}, found {actual_schema.get(col)}")
+        return self
     
 
 
@@ -123,8 +138,7 @@ class Db ():
             for column_name, column_type in columns.items():
                 columns_sql.append(f"`{column_name}` {column_type}")
 
-            create_table_query = f"CREATE TABLE `{table_name}` (\n  {',\n  '.join(columns_sql)}\n);"
-
+            create_table_query = f"CREATE TABLE `{table_name}` (  {',  '.join(columns_sql)});"
             cursor.execute(create_table_query)
         return self
 
@@ -150,7 +164,8 @@ class Db ():
             cursor.execute(f"USE {self.name}")
 
             if isinstance(self.data, dict):
-                columns = ", ".join(self.data.keys())
+                columns = [f"`{column}`" for column in self.data.keys()]
+                columns = ", ".join(columns)
                 placeholders = ", ".join(["%s"] * len(self.data))
                 values = tuple(self.data.values())
 
@@ -160,15 +175,14 @@ class Db ():
             
             elif isinstance(self.data, (pd.DataFrame, pd.Series)):
                 df = self.data
-                df = df.where(pd.notnull(df))
+                df = df.where(pd.notnull(df), None)
 
-                columns = ", ".join(df.columns)
+                columns = [f"`{column}`" for column in df.columns]
+                columns = ", ".join(columns)
                 placeholders = ", ".join(["%s"] * len(df.columns))
+                data = [tuple(None if pd.isna(x) else x for x in row) for row in df.itertuples(index=False, name=None)]
                 query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
-
-                data = [tuple(row) for row in df.itertuples(index=False, name=None)]
                 cursor.executemany(query, data)
-
                 self.connection.commit()
 
             else:
@@ -213,6 +227,11 @@ class Db ():
     def set (self, data=None):
         self.data = data
         return self
+    
+
+
+    def get(self):
+        return self.data
 
 
 
@@ -220,33 +239,35 @@ class Db ():
         if self.existsdb():
             return self
         
-        if self.path:
-            if not os.path.exists(self.path):
-                raise FileNotFoundError(f"Function: Db.configdb(). Invalid path {self.path}. Please provide valid backup path.")
-            return self.importdb()
-        
-        return self.newdb()
-        
+        self.newdb()
+
+        if self.path and os.path.exists(self.path):
+            self.importdb()
+        return self
 
     
     def configtables (self):
-        for table in self.schema.keys():
-            if not self.existstable(table):
-                self.newtable(self.schema[table])
+        for table in self.schema:
+            if self.existstable(table["table_name"]):
+                self.existsschema(table)
+            else:
+                self.newtable(table)
         return self
     
 
 
     def read (self, query):
         try:
-            self.connect().conifgdb().configtables().query(query).close()
+            return self.connect().configdb().configtables().query(query).close().get()
         except Exception as err:
             logging.error(f"Function: Db.read(). Error {err}")
+        return self
 
 
 
-    def write (self, table):
+    def write (self, table, data):
         try:
-            self.connect().conifgdb().configtables().insert(table).close()
+            return self.connect().configdb().configtables().set(data).insert(table).close()
         except Exception as err:
             logging.error(f"Function: Db.write(). Error {err}")
+        return self
