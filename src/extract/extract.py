@@ -1,4 +1,5 @@
 from src.step.step import BaseStep
+from src.connect.db import Db
 
 import os
 import pandas as pd
@@ -49,4 +50,25 @@ class FromCSV (Extract):
         else:
             self.data = None
 
+        return self
+
+
+
+class FromDb (Extract):
+    def __init__ (self, db=None, table=None, schema=[], order_column="", limit=0):
+        self.db = db
+        self.table = table
+        self.schema = schema
+        self.order_column = order_column
+        self.limit = limit
+        self.query = f"select * from (select * from {self.table} order by `{self.order_column}` desc limit {self.limit}) as q order by q.`{self.order_column}` asc;"
+        self.data = None
+        super().__init__(None, None, None, None)
+
+
+
+    def get (self):
+        array = Db(name=self.db, schema=self.schema).read(self.query)
+        df = pd.DataFrame(array, columns=self.schema[0]["columns"].keys())
+        self.data = df
         return self
