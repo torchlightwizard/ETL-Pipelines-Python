@@ -26,6 +26,6 @@ class WorkflowBuilder ():
             self.steps.append(step)
             
         except Exception as err:
-            current_step = current_step.__class__.__name__ if current_step else "Unknown"
+            step = step.__class__.__name__ if step else "Unknown"
             logging.exception(f"Function: WorkflowBuilder.add(). Step Failed: {step.__class__.__name__}. Error: {err}\n")
         return self
