@@ -1,0 +1,43 @@
+/* Title */
+.title {
+    text-align: center;
+  }
+  
+  /* Main container card */
+  .card {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    width: 300px;
+    margin: 1rem auto;
+  }
+  
+  /* Row styling */
+  .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+  }
+  
+  /* Row with bottom border */
+  .row-border {
+    border-bottom: 1px solid #333;
+  }
+  
+  /* Label styling */
+  .label {
+    font-weight: bold;
+    color: #aaa;
+  }
+  
+  /* Value styling */
+  .value-true {
+    color: #fff;
+  }
+  
+  .value-false {
+    color: #ff6347;
+  }
+  
