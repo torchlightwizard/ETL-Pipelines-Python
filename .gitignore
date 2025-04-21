@@ -1,0 +1,11 @@
+.localenv
+.cache.sqlite
+__pycache__/
+keys/**
+logs/**
+data/datalake/**
+data/datawarehouse/data/**
+data/datawarehouse/predict/**
+data/train/processed/**
+data/train/raw/openmeteo/**
+data/train/raw/polygon/**
