@@ -1,12 +1,12 @@
 ![Dashboards](./public/Dashboard%20With%20Different%20Pipeline%20Results.PNG)
 
 # Intro
-We built a pipeline class that handles data extraction/fetch, transformation, displaying dashboard for n different pipelines and displays them separately on a dashboard.<br>
-Currenlty two pipelines are included, we can include as many more as we like.
+I built a pipeline class that handles data extraction/fetch, transformation, displaying dashboard for n different pipelines and displays them separately on a dashboard.<br>
+Currently two pipelines are included, I can include as many more as I like.
 
 ### Pipelines Included
-1. We use Open Meteo's weather data to predict if rain falls on the next day or not.
-2. We use Polygon's stock market data to predict the Closing price of a stock for the next day.
+1. I use Open Meteo's weather data to predict if rain falls on the next day or not.
+2. I use Polygon's stock market data to predict the Closing price of a stock for the next day.
 
 ### TechStack
 1. Plotly Dash
@@ -48,7 +48,7 @@ You can type `new`openmeteo to fetch new data. or `old`openmeteo to get predict 
 
 
 # Datasets
-Weather data:
+Iather data:
 https://open-meteo.com/en/docs
 
 Stock market data:
